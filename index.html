@@ -9,328 +9,164 @@
         :root {
             --pitch-dark: #0d2b11;
             --pitch-light: #113816;
-            --neon-blue: #00d2ff;
-            --neon-red: #ff2e2e;
+            --navy-deep: #000a1f;
+            --navy-bright: #001233;
+            --afa-blue: #75bbee;
+            --white-pure: #ffffff;
             --accent: #f6ff00;
         }
 
-        * {
-            box-sizing: border-box;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
-        }
+        * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
 
         body {
-            margin: 0;
-            padding: 0;
-            background-color: #000;
+            margin: 0; padding: 0; background-color: #000;
             font-family: 'Inter', sans-serif;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            overflow: hidden;
-            color: white;
+            display: flex; align-items: center; justify-content: center;
+            height: 100vh; overflow: hidden; color: white;
         }
 
-        /* Contenedor con relación de aspecto fija 16:9 */
         #game-wrapper {
             position: relative;
-            width: 100vw;
-            height: 56.25vw; /* 9 / 16 = 0.5625 */
-            max-height: 100vh;
-            max-width: 177.78vh; /* 16 / 9 = 1.7778 */
+            width: 100vw; height: 56.25vw;
+            max-height: 100vh; max-width: 177.78vh;
             background-color: #111;
-            box-shadow: 0 0 100px rgba(0,0,0,1);
             overflow: hidden;
         }
 
-        canvas {
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
+        canvas { width: 100%; height: 100%; display: block; }
 
+        /* --- MARCADOR LPF --- */
         #ui-overlay {
-            position: absolute;
-            top: 2%;
-            left: 2%;
-            z-index: 50;
-            opacity: 0;
-            transition: opacity 0.5s;
-            pointer-events: none;
-            width: 96%;
+            position: absolute; top: 2%; left: 50%; transform: translateX(-50%) scale(0.75);
+            z-index: 50; display: flex; align-items: center; filter: drop-shadow(0 10px 20px rgba(0,0,0,0.6));
+            opacity: 0; transition: opacity 0.5s; pointer-events: none;
         }
+        .team-wrapper { display: flex; align-items: center; background: linear-gradient(to bottom, var(--navy-bright), var(--navy-deep)); height: 52px; min-width: 140px; border-top: 3px solid var(--afa-blue); }
+        .local-wrapper { padding-left: 20px; border-top-left-radius: 4px; }
+        .visit-wrapper { padding-right: 20px; border-top-right-radius: 4px; flex-direction: row-reverse; }
+        .team-text { font-weight: 900; font-size: 24px; color: white; }
+        .crest-hud { width: 36px; height: 36px; object-fit: contain; margin: 0 10px; }
+        .score-box { width: 55px; height: 52px; display: flex; justify-content: center; align-items: center; font-size: 34px; font-weight: 900; background-color: var(--white-pure); color: var(--navy-deep); border-top: 3px solid var(--afa-blue); z-index: 5; }
+        .local-score-box { clip-path: polygon(0 0, 100% 0, 85% 100%, 0% 100%); margin-right: -8px; }
+        .visit-score-box { clip-path: polygon(15% 0, 100% 0, 100% 100%, 0% 100%); margin-left: -8px; }
+        .logo-center { background: linear-gradient(135deg, #001233 0%, #000000 100%); width: 72px; height: 62px; display: flex; justify-content: center; align-items: center; z-index: 20; position: relative; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.1); transform: scale(1.05); }
+        .logo-center img { width: 85%; height: auto; }
+        .timer-container { position: absolute; bottom: -32px; left: 50%; transform: translateX(-50%); background: linear-gradient(to bottom, #000a1f, #000000); color: white; width: 110px; height: 32px; display: flex; justify-content: center; align-items: center; font-weight: 700; font-size: 20px; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
 
-        .modern-hud {
-            display: flex;
-            align-items: stretch;
-            height: 40px;
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(5px);
-            border-left: 4px solid var(--accent);
-            overflow: hidden;
-            width: fit-content;
+        /* --- SISTEMA DE GOL --- */
+        .gol-wrapper {
+            position: absolute; inset: 0; pointer-events: none;
+            display: flex; justify-content: center; align-items: center; z-index: 200;
         }
-
-        .hud-team-box {
-            display: flex;
-            align-items: center;
-            padding: 0 15px;
-            gap: 10px;
-            background: #111;
-        }
-
-        .hud-crest { width: 24px; height: 24px; object-fit: contain; }
-        .hud-tag { font-weight: 900; font-size: 1rem; letter-spacing: 1px; }
-
-        .hud-scores {
-            display: flex;
-            align-items: center;
-            background: #000;
-            padding: 0 20px;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1.4rem;
-            min-width: 80px;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .hud-timer-box {
-            background: var(--accent);
-            color: #000;
-            display: flex;
-            align-items: center;
-            padding: 0 15px;
-            font-family: 'Orbitron', sans-serif;
-            font-weight: 700;
-            font-size: 0.9rem;
-        }
-
-        #goal-message {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(1.5);
-            opacity: 0;
-            font-weight: 900;
-            font-size: 8rem;
-            color: var(--accent);
-            z-index: 100;
-            pointer-events: none;
-            text-transform: uppercase;
-            transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
-            text-shadow: 0 0 50px rgba(0,0,0,0.5);
-        }
-        
-        #goal-message.show { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-
-        .full-screen-menu {
-            position: absolute;
-            inset: 0;
-            background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.9)), url('https://media.a24.com/p/1f6d3babba870b534a9102207fa34ae2/adjuntos/296/imagenes/009/587/0009587387/1200x675/smart/image.png');
-            background-size: cover;
-            background-position: center;
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            transition: all 0.5s ease;
-        }
-
-        .full-screen-menu.hidden { opacity: 0; pointer-events: none; }
-
-        #mode-selector, #pitch-selector, #team-selector {
+        .gol-text {
+            font-family: 'Black Ops One', cursive; font-size: 100px; color: #ffffff;
+            text-transform: uppercase; text-align: center; white-space: nowrap;
+            text-shadow: 4px 4px 0px #75aadb, 8px 8px 0px #003870, 0 0 30px rgba(255, 255, 255, 0.5);
+            opacity: 0; transform: scale(0.5); margin: 0;
             display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            animation: slideUp 0.4s ease-out;
         }
+        @keyframes goalPop {
+            0% { opacity: 0; transform: scale(0.2) rotate(-10deg); filter: blur(10px); }
+            15% { opacity: 1; transform: scale(1.1) rotate(5deg); filter: blur(0); }
+            85% { opacity: 1; transform: scale(1) rotate(0deg); }
+            100% { opacity: 0; transform: scale(1.4); filter: blur(15px); }
+        }
+        .particle { position: absolute; width: 10px; height: 10px; pointer-events: none; border-radius: 2px; z-index: 199; }
 
+        /* --- MENUS --- */
+        .full-screen-menu { position: absolute; inset: 0; background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.9)), url('https://media.a24.com/p/1f6d3babba870b534a9102207fa34ae2/adjuntos/296/imagenes/009/587/0009587387/1200x675/smart/image.png'); background-size: cover; background-position: center; z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; transition: all 0.5s ease; }
+        .full-screen-menu.hidden { opacity: 0; pointer-events: none; }
         .active-panel { display: flex !important; }
-
-        .menu-title {
-            font-family: 'Black Ops One', cursive;
-            font-size: 4rem;
-            margin-bottom: 20px;
-            text-align: center;
-            text-transform: uppercase;
-            text-shadow: 0 5px 15px rgba(0,0,0,0.8);
-        }
-
-        .btn-modern {
-            padding: 15px 40px;
-            margin: 10px;
-            font-family: 'Montserrat', sans-serif;
-            font-size: 1rem;
-            background: rgba(255, 255, 255, 0.05);
-            color: #fff;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-            border-radius: 50px;
-            cursor: pointer;
-            font-weight: 900;
-            width: 100%;
-            max-width: 380px;
-            text-transform: uppercase;
-            transition: all 0.3s;
-        }
+        #mode-selector, #pitch-selector, #team-selector, #about-panel { display: none; flex-direction: column; align-items: center; width: 100%; animation: slideUp 0.4s ease-out; }
+        .menu-title { font-family: 'Black Ops One', cursive; font-size: 4rem; margin-bottom: 20px; text-transform: uppercase; text-align: center; line-height: 1; }
+        .btn-modern { padding: 15px 40px; margin: 10px; font-family: 'Montserrat', sans-serif; font-size: 1rem; background: rgba(255, 255, 255, 0.05); color: #fff; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 50px; cursor: pointer; font-weight: 900; width: 100%; max-width: 380px; text-transform: uppercase; transition: 0.3s; }
+        .btn-modern:hover { background: #fff; color: #000; }
         
-        .btn-modern:hover { background: #fff; color: #000; transform: scale(1.05); }
+        /* --- ACERCA DE PANEL --- */
+        .info-box { background: rgba(0, 0, 0, 0.6); padding: 25px; border-radius: 15px; border: 1px solid var(--afa-blue); max-width: 500px; text-align: center; backdrop-filter: blur(10px); }
+        .info-box h3 { color: var(--afa-blue); margin-top: 0; text-transform: uppercase; }
+        .info-box p { margin: 8px 0; font-size: 0.9rem; line-height: 1.4; }
+        .info-box .divider { height: 1px; background: rgba(255,255,255,0.2); margin: 15px 0; }
 
-        /* VISTA PREVIA DE CANCHAS */
-        .pitch-preview-container {
-            display: flex;
-            gap: 15px;
-            margin-top: 15px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .pitch-card {
-            width: 200px;
-            height: 150px;
-            background: #222;
-            border: 2px solid rgba(255,255,255,0.1);
-            border-radius: 10px;
-            overflow: hidden;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .pitch-card:hover { transform: translateY(-5px); border-color: var(--accent); }
-
-        .pitch-thumb { width: 100%; height: 100px; position: relative; }
-        .pitch-label {
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 900;
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            background: rgba(0,0,0,0.5);
-        }
-
+        .pitch-preview-container { display: flex; gap: 15px; margin-top: 15px; flex-wrap: wrap; justify-content: center; }
+        .pitch-card { width: 180px; height: 130px; background: #222; border-radius: 10px; overflow: hidden; cursor: pointer; transition: 0.3s; border: 2px solid transparent; }
+        .pitch-card:hover { border-color: var(--accent); transform: translateY(-5px); }
+        .pitch-thumb { width: 100%; height: 80px; position: relative; }
         .thumb-classic { background: repeating-linear-gradient(90deg, #0d2b11 0%, #0d2b11 20%, #113816 20%, #113816 40%); }
         .thumb-elite { background: radial-gradient(circle at center, #113816 0%, #0d2b11 70%); }
-        .thumb-potrero { background: #5d4037; position: relative; }
-        
-        .pitch-lines-thumb {
-            position: absolute;
-            inset: 8px;
-            border: 1px solid rgba(255,255,255,0.3);
-            pointer-events: none;
-        }
-        .pitch-lines-thumb::before {
-            content: ''; position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: rgba(255,255,255,0.3);
-        }
-
-        .team-grid {
-            display: grid;
-            grid-template-columns: repeat(8, 1fr);
-            gap: 10px;
-            margin: 15px 0;
-            width: 100%;
-            max-width: 900px;
-            overflow-y: auto;
-            max-height: 300px;
-            padding: 10px;
-        }
-
-        .team-card {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 6px;
-            padding: 10px 5px;
-            cursor: pointer;
-            text-align: center;
-        }
-
-        .team-card img { width: 40px; height: 40px; margin-bottom: 5px; object-fit: contain; }
-
-        #victory-screen {
-            position: absolute;
-            inset: 0;
-            background: rgba(0,0,0,0.95);
-            z-index: 2000;
-            display: none;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-
+        .thumb-potrero { background: #5d4037; }
+        .team-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 10px; margin: 15px 0; width: 100%; max-width: 900px; overflow-y: auto; max-height: 250px; padding: 10px; }
+        .team-card { background: rgba(255, 255, 255, 0.1); border-radius: 6px; padding: 10px 5px; cursor: pointer; text-align: center; border: 1px solid rgba(255,255,255,0.1); }
+        .team-card img { width: 35px; height: 35px; margin-bottom: 5px; object-fit: contain; }
+        #victory-screen { position: absolute; inset: 0; background: rgba(0,0,0,0.95); z-index: 2000; display: none; flex-direction: column; justify-content: center; align-items: center; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
     <div id="game-wrapper">
-        <!-- El canvas mantiene resolución 800x450 interna, el CSS lo escala -->
         <canvas id="gameCanvas"></canvas>
 
         <div id="ui-overlay">
-            <div class="modern-hud">
-                <div class="hud-team-box">
-                    <img id="hud-img-l" class="hud-crest" src="" alt="">
-                    <span id="hud-tag-l" class="hud-tag">BOC</span>
-                </div>
-                <div class="hud-scores">
-                    <span id="score-l">0</span>
-                    <span style="color: #555;">-</span>
-                    <span id="score-r">0</span>
-                </div>
-                <div class="hud-team-box">
-                    <span id="hud-tag-r" class="hud-tag">RIV</span>
-                    <img id="hud-img-r" class="hud-crest" src="" alt="">
-                </div>
-                <div class="hud-timer-box" id="timer">02:00</div>
+            <div class="team-wrapper local-wrapper">
+                <span class="team-text" id="hud-tag-l">BOC</span>
+                <img src="" class="crest-hud" id="hud-img-l">
             </div>
+            <div class="score-box local-score-box" id="score-l">0</div>
+            <div class="logo-center"><img src="https://upload.wikimedia.org/wikipedia/commons/8/85/Logo_lpf_afa.png" alt="LPF"></div>
+            <div class="score-box visit-score-box" id="score-r">0</div>
+            <div class="team-wrapper visit-wrapper">
+                <span class="team-text" id="hud-tag-r">RIV</span>
+                <img src="" class="crest-hud" id="hud-img-r">
+            </div>
+            <div class="timer-container" id="timer">02:00</div>
         </div>
 
-        <div id="goal-message">¡GOL!</div>
+        <div class="gol-wrapper" id="gol-overlay">
+            <h1 class="gol-text" id="gol-label">¡GOL!</h1>
+        </div>
 
         <div id="setup-menu" class="full-screen-menu">
             <div id="mode-selector" class="active-panel">
                 <h1 class="menu-title">SUPERLIGA<br>ARGENTINA</h1>
                 <button class="btn-modern" onclick="selectMode('pve')">Vs Computadora</button>
                 <button class="btn-modern" onclick="selectMode('pvp')">2 Jugadores</button>
+                <button class="btn-modern" onclick="showAbout()" style="font-size: 0.8rem; opacity: 0.8;">Acerca de / Controles</button>
             </div>
 
-            <div id="pitch-selector">
-                <h1 class="menu-title" style="font-size: 2.2rem; font-family: 'Montserrat'">Estadio</h1>
-                <div class="pitch-preview-container">
-                    <div class="pitch-card" onclick="selectPitch('classic')">
-                        <div class="pitch-thumb thumb-classic"><div class="pitch-lines-thumb"></div></div>
-                        <div class="pitch-label">Clásica</div>
-                    </div>
-                    <div class="pitch-card" onclick="selectPitch('elite')">
-                        <div class="pitch-thumb thumb-elite"><div class="pitch-lines-thumb" style="border-radius: 50%"></div></div>
-                        <div class="pitch-label">Élite</div>
-                    </div>
-                    <div class="pitch-card" onclick="selectPitch('potrero')">
-                        <div class="pitch-thumb thumb-potrero"><div class="pitch-lines-thumb" style="border-style: dashed; opacity: 0.5"></div></div>
-                        <div class="pitch-label">Potrero</div>
-                    </div>
+            <div id="about-panel">
+                <div class="info-box">
+                    <h3>Controles del Juego</h3>
+                    <p><strong>Jugador 1 (Local):</strong> Teclas <span style="color:var(--accent)">W</span> y <span style="color:var(--accent)">S</span></p>
+                    <p><strong>Jugador 2 (Visita):</strong> Flechas <span style="color:var(--accent)">ARRIBA</span> y <span style="color:var(--accent)">ABAJO</span></p>
+                    <div class="divider"></div>
+                    <h3>Créditos</h3>
+                    <p><strong>Autor:</strong> Juan Sebastian Olivera</p>
+                    <p><strong>Correo:</strong> Juanlg1491@gmail.com</p>
+                    <button class="btn-modern" onclick="hideAbout()" style="margin-top: 15px; max-width: 150px; padding: 10px;">Volver</button>
                 </div>
             </div>
 
+            <div id="pitch-selector">
+                <h1 class="menu-title" style="font-size: 2rem;">Estadio</h1>
+                <div class="pitch-preview-container">
+                    <div class="pitch-card" onclick="selectPitch('classic')"><div class="pitch-thumb thumb-classic"></div><div style="text-align:center; padding:5px; font-weight:900; font-size:0.7rem">CLÁSICA</div></div>
+                    <div class="pitch-card" onclick="selectPitch('elite')"><div class="pitch-thumb thumb-elite"></div><div style="text-align:center; padding:5px; font-weight:900; font-size:0.7rem">ÉLITE</div></div>
+                    <div class="pitch-card" onclick="selectPitch('potrero')"><div class="pitch-thumb thumb-potrero"></div><div style="text-align:center; padding:5px; font-weight:900; font-size:0.7rem">POTRERO</div></div>
+                </div>
+            </div>
             <div id="team-selector">
-                <h1 class="menu-title" style="font-size: 1.8rem; font-family: 'Montserrat'">Clubes</h1>
+                <h1 class="menu-title" style="font-size: 1.8rem;">Clubes</h1>
                 <div class="team-grid" id="team-grid"></div>
-                <p style="font-size: 0.8rem; opacity: 0.7;">Click Izq: Local | Click Der: Visitante</p>
-                <button class="btn-modern" onclick="initMatch()" style="background: var(--accent); color: #000; border:none;">Jugar</button>
+                <p style="font-size: 0.7rem; opacity: 0.6;">Click Izq: Local | Click Der: Visitante</p>
+                <button class="btn-modern" onclick="initMatch()" style="background: var(--afa-blue); color: #000; border:none;">Jugar</button>
             </div>
         </div>
 
         <div id="victory-screen">
             <h1 id="vic-title" style="font-family: 'Montserrat'; font-size: 3rem; font-weight: 900;">¡FINAL!</h1>
             <img id="vic-img" src="" style="width: 120px; margin: 20px 0; object-fit: contain;">
-            <h2 id="vic-name" style="font-size: 2rem; color: var(--accent); font-family: 'Montserrat';"></h2>
+            <h2 id="vic-name" style="font-size: 2rem; color: var(--afa-blue); font-family: 'Montserrat';"></h2>
             <button class="btn-modern" onclick="location.reload()">Reiniciar</button>
         </div>
     </div>
@@ -338,8 +174,6 @@
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        
-        // Resolución lógica 800x450 (Mantiene relación 16:9)
         const VW = 800, VH = 450;
         canvas.width = VW; canvas.height = VH;
 
@@ -364,56 +198,30 @@
 
         let p1Team = teams[0], p2Team = teams[1];
         let gameMode = 'pve', playing = false, isPaused = false;
-        let selectedPitch = 'classic';
-        let p1Score = 0, p2Score = 0, clock = 120;
+        let selectedPitch = 'classic', clock = 120, p1Score = 0, p2Score = 0;
         let potreroPatches = [];
 
-        // Dimensiones ajustadas a 800x450
         const ball = { x: VW/2, y: VH/2, r: 8, dx: 0, dy: 0, s: 7 };
-        const ph = 80, pw = 18; 
-        const p1 = { x: 40, y: VH/2 - 40, w: pw, h: ph, s: 8 };
-        const p2 = { x: VW - 40 - pw, y: VH/2 - 40, w: pw, h: ph, s: 8 };
+        const p1 = { x: 40, y: VH/2 - 40, w: 18, h: 80, s: 8 };
+        const p2 = { x: VW - 58, y: VH/2 - 40, w: 18, h: 80, s: 8 };
 
-        function selectMode(m) {
-            gameMode = m;
-            switchPanel('mode-selector', 'pitch-selector');
-        }
-
-        function selectPitch(p) {
-            selectedPitch = p;
-            if(p === 'potrero') initPotreroDesign();
-            switchPanel('pitch-selector', 'team-selector');
-            renderTeams();
-        }
-
-        function switchPanel(oldId, newId) {
-            document.getElementById(oldId).classList.remove('active-panel');
-            document.getElementById(newId).classList.add('active-panel');
-        }
-
+        // --- FUNCIONES DE MENU ---
+        function selectMode(m) { gameMode = m; switchPanel('mode-selector', 'pitch-selector'); }
+        function selectPitch(p) { selectedPitch = p; if(p === 'potrero') initPotreroDesign(); switchPanel('pitch-selector', 'team-selector'); renderTeams(); }
+        function showAbout() { switchPanel('mode-selector', 'about-panel'); }
+        function hideAbout() { switchPanel('about-panel', 'mode-selector'); }
+        function switchPanel(oldId, newId) { document.getElementById(oldId).classList.remove('active-panel'); document.getElementById(newId).classList.add('active-panel'); }
+        
         function initPotreroDesign() {
             potreroPatches = [];
-            for(let i=0; i<60; i++) {
-                potreroPatches.push({
-                    x: Math.random() * VW,
-                    y: Math.random() * VH,
-                    w: 30 + Math.random() * 60,
-                    h: 15 + Math.random() * 30,
-                    rot: Math.random() * Math.PI,
-                    color: Math.random() > 0.6 ? '#4e342e' : '#2e7d32',
-                    opacity: 0.2
-                });
-            }
+            for(let i=0; i<60; i++) potreroPatches.push({ x: Math.random()*VW, y: Math.random()*VH, w: 30+Math.random()*60, h: 15+Math.random()*30, rot: Math.random()*Math.PI, color: Math.random()>0.6 ? '#4e342e' : '#2e7d32', opacity: 0.2 });
         }
 
         function renderTeams() {
-            const grid = document.getElementById('team-grid');
-            grid.innerHTML = '';
+            const grid = document.getElementById('team-grid'); grid.innerHTML = '';
             teams.forEach(t => {
-                const card = document.createElement('div');
-                card.className = 'team-card';
-                card.id = `card-${t.id}`;
-                card.innerHTML = `<img src="${t.crest}"><div style="font-size:0.7rem; font-weight:900;">${t.tag}</div>`;
+                const card = document.createElement('div'); card.className = 'team-card'; card.id = `card-${t.id}`;
+                card.innerHTML = `<img src="${t.crest}"><div>${t.tag}</div>`;
                 card.onclick = () => { p1Team = t; updateCards(); };
                 card.oncontextmenu = (e) => { e.preventDefault(); p2Team = t; updateCards(); };
                 grid.appendChild(card);
@@ -423,9 +231,9 @@
 
         function updateCards() {
             document.querySelectorAll('.team-card').forEach(c => {
-                c.style.border = '1px solid rgba(255,255,255,0.2)';
-                if(c.id === `card-${p1Team.id}`) c.style.border = '2px solid var(--neon-blue)';
-                if(c.id === `card-${p2Team.id}`) c.style.border = '2px solid var(--neon-red)';
+                c.style.borderColor = 'rgba(255,255,255,0.1)';
+                if(c.id === `card-${p1Team.id}`) c.style.borderColor = 'var(--afa-blue)';
+                if(c.id === `card-${p2Team.id}`) c.style.borderColor = 'red';
             });
         }
 
@@ -433,14 +241,33 @@
             document.getElementById('setup-menu').classList.add('hidden');
             setTimeout(() => {
                 document.getElementById('ui-overlay').style.opacity = '1';
-                document.getElementById('hud-img-l').src = p1Team.crest;
-                document.getElementById('hud-img-r').src = p2Team.crest;
-                document.getElementById('hud-tag-l').textContent = p1Team.tag;
-                document.getElementById('hud-tag-r').textContent = p2Team.tag;
-                playing = true;
-                timerEngine();
-                spawnBall(1);
+                document.getElementById('hud-img-l').src = p1Team.crest; document.getElementById('hud-img-r').src = p2Team.crest;
+                document.getElementById('hud-tag-l').textContent = p1Team.tag; document.getElementById('hud-tag-r').textContent = p2Team.tag;
+                playing = true; timerEngine(); spawnBall(1);
             }, 500);
+        }
+
+        function playGoalAnimation() {
+            const label = document.getElementById('gol-label');
+            const container = document.getElementById('gol-overlay');
+            label.style.display = 'block';
+            label.style.animation = 'none';
+            label.offsetHeight; 
+            label.style.animation = 'goalPop 2.5s cubic-bezier(0.17, 0.89, 0.32, 1.49) forwards';
+            for (let i = 0; i < 50; i++) createParticle(container);
+            setTimeout(() => { label.style.display = 'none'; }, 2500);
+        }
+
+        function createParticle(parent) {
+            const p = document.createElement('div'); p.className = 'particle';
+            const colors = ['#75aadb', '#ffffff', '#ffcd00'];
+            p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            p.style.left = '50%'; p.style.top = '50%';
+            parent.appendChild(p);
+            const angle = Math.random() * Math.PI * 2, velocity = 120 + Math.random() * 300;
+            const destX = Math.cos(angle) * velocity, destY = Math.sin(angle) * velocity;
+            const anim = p.animate([{ transform: 'translate(-50%, -50%) scale(1)', opacity: 1 }, { transform: `translate(calc(-50% + ${destX}px), calc(-50% + ${destY}px)) scale(0)`, opacity: 0 }], { duration: 1200 + Math.random() * 800, easing: 'cubic-bezier(0.33, 1, 0.68, 1)', fill: 'forwards' });
+            anim.onfinish = () => p.remove();
         }
 
         const input = {};
@@ -449,91 +276,53 @@
 
         function update() {
             if(!playing || isPaused) return;
-
-            if(input['KeyW']) p1.y -= p1.s;
-            if(input['KeyS']) p1.y += p1.s;
-
-            if(gameMode === 'pvp') {
-                if(input['ArrowUp']) p2.y -= p2.s;
-                if(input['ArrowDown']) p2.y += p2.s;
-            } else {
-                let center = p2.y + ph/2;
-                if(ball.y > center + 15) p2.y += p2.s * 0.75;
-                else if(ball.y < center - 15) p2.y -= p2.s * 0.75;
-            }
-
-            p1.y = Math.max(0, Math.min(VH-ph, p1.y));
-            p2.y = Math.max(0, Math.min(VH-ph, p2.y));
-
+            if(input['KeyW']) p1.y -= p1.s; if(input['KeyS']) p1.y += p1.s;
+            if(gameMode === 'pvp') { if(input['ArrowUp']) p2.y -= p2.s; if(input['ArrowDown']) p2.y += p2.s; }
+            else { let center = p2.y + 40; if(ball.y > center + 15) p2.y += p2.s * 0.75; else if(ball.y < center - 15) p2.y -= p2.s * 0.75; }
+            p1.y = Math.max(0, Math.min(VH-80, p1.y)); p2.y = Math.max(0, Math.min(VH-80, p2.y));
             ball.x += ball.dx; ball.y += ball.dy;
-
             if(ball.y < ball.r || ball.y > VH-ball.r) ball.dy *= -1;
-
-            if(hitTest(ball, p1)) onHit(p1, 1);
-            else if(hitTest(ball, p2)) onHit(p2, -1);
-
-            const goalHeight = 150;
-            const gy = (VH-goalHeight)/2;
-            const margin = 30;
-            
-            if(ball.x < margin) {
-                if(ball.y > gy && ball.y < gy+goalHeight) scored(2);
-                else { ball.dx *= -1; ball.x = margin+1; }
-            } else if(ball.x > VW-margin) {
-                if(ball.y > gy && ball.y < gy+goalHeight) scored(1);
-                else { ball.dx *= -1; ball.x = VW-margin-1; }
-            }
+            if(hitTest(ball, p1)) onHit(p1, 1); else if(hitTest(ball, p2)) onHit(p2, -1);
+            const gy = (VH-150)/2;
+            if(ball.x < 30) { if(ball.y > gy && ball.y < gy+150) scored(2); else { ball.dx *= -1; ball.x = 31; } }
+            else if(ball.x > VW-30) { if(ball.y > gy && ball.y < gy+150) scored(1); else { ball.dx *= -1; ball.x = VW-31; } }
         }
 
-        function hitTest(b, p) {
-            return b.x+b.r > p.x && b.x-b.r < p.x+p.w && b.y+b.r > p.y && b.y-b.r < p.y+p.h;
-        }
-
-        function onHit(p, dir) {
-            let n = (ball.y - (p.y + p.h/2)) / (p.h/2);
-            ball.s += 0.4;
-            ball.dx = dir * ball.s * Math.cos(n * 0.8);
-            ball.dy = ball.s * Math.sin(n * 0.8);
-            ball.x = dir > 0 ? p.x + p.w + ball.r : p.x - ball.r;
-        }
+        function hitTest(b, p) { return b.x+b.r > p.x && b.x-b.r < p.x+p.w && b.y+b.r > p.y && b.y-b.r < p.y+p.h; }
+        function onHit(p, dir) { let n = (ball.y - (p.y + 40)) / 40; ball.s += 0.4; ball.dx = dir * ball.s * Math.cos(n * 0.8); ball.dy = ball.s * Math.sin(n * 0.8); ball.x = dir > 0 ? p.x + p.w + ball.r : p.x - ball.r; }
 
         function scored(who) {
             isPaused = true;
-            if(who === 1) { p1Score++; document.getElementById('score-l').textContent = p1Score; }
-            else { p2Score++; document.getElementById('score-r').textContent = p2Score; }
-
-            const msg = document.getElementById('goal-message');
-            msg.classList.add('show');
-            setTimeout(() => {
-                msg.classList.remove('show');
-                spawnBall(who === 1 ? -1 : 1);
-            }, 1200);
+            who === 1 ? p1Score++ : p2Score++;
+            document.getElementById('score-l').textContent = p1Score; document.getElementById('score-r').textContent = p2Score;
+            playGoalAnimation();
+            setTimeout(() => { spawnBall(who === 1 ? -1 : 1); }, 3000);
         }
 
         function spawnBall(dir) {
             ball.x = VW/2; ball.y = VH/2; ball.dx = 0; ball.dy = 0;
-            setTimeout(() => {
-                if(!playing) return;
-                ball.s = 7; ball.dx = dir * ball.s; ball.dy = (Math.random()-0.5)*5;
-                isPaused = false;
-            }, 1000);
+            if(!playing) return;
+            setTimeout(() => { 
+                ball.s = 7; 
+                ball.dx = dir * ball.s; 
+                ball.dy = (Math.random()-0.5)*5; 
+                isPaused = false; 
+            }, 500);
         }
 
         function timerEngine() {
             const intv = setInterval(() => {
                 if(!playing) { clearInterval(intv); return; }
                 if(!isPaused) clock--;
-                const min = Math.floor(clock/60).toString().padStart(2, '0');
-                const sec = (clock%60).toString().padStart(2, '0');
+                const min = Math.floor(clock/60).toString().padStart(2, '0'), sec = (clock%60).toString().padStart(2, '0');
                 document.getElementById('timer').textContent = `${min}:${sec}`;
                 if(clock <= 0) terminate();
             }, 1000);
         }
 
         function terminate() {
-            playing = false;
-            const end = document.getElementById('victory-screen');
-            end.style.display = 'flex';
+            playing = false; isPaused = false;
+            document.getElementById('victory-screen').style.display = 'flex';
             const win = p1Score > p2Score ? p1Team : (p2Score > p1Score ? p2Team : null);
             document.getElementById('vic-name').textContent = win ? win.name : "¡EMPATE!";
             document.getElementById('vic-img').src = win ? win.crest : '';
@@ -541,60 +330,19 @@
 
         function draw() {
             ctx.clearRect(0,0,VW,VH);
-            
-            if (selectedPitch === 'classic') {
-                const sw = VW / 10;
-                for(let i=0; i<VW; i+=sw) {
-                    ctx.fillStyle = (Math.floor(i/sw) % 2 === 0) ? '#0d2b11' : '#113816';
-                    ctx.fillRect(i, 0, sw, VH);
-                }
-            } else if (selectedPitch === 'elite') {
-                ctx.fillStyle = '#113816';
-                ctx.fillRect(0,0,VW,VH);
-                for(let r=VW; r > 0; r -= 70) {
-                    ctx.fillStyle = (Math.floor(r/70) % 2 === 0) ? '#113816' : '#0d2b11';
-                    ctx.beginPath(); ctx.arc(VW/2, VH/2, r, 0, Math.PI*2); ctx.fill();
-                }
-            } else if (selectedPitch === 'potrero') {
-                ctx.fillStyle = '#5d4037';
-                ctx.fillRect(0,0,VW,VH);
-                potreroPatches.forEach(p => {
-                    ctx.fillStyle = p.color; ctx.globalAlpha = p.opacity;
-                    ctx.beginPath(); ctx.ellipse(p.x, p.y, p.w, p.h, p.rot, 0, Math.PI*2); ctx.fill();
-                });
-                ctx.globalAlpha = 1.0;
-            }
-
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-            ctx.lineWidth = 2;
+            if (selectedPitch === 'classic') { for(let i=0; i<VW; i+=VW/10) { ctx.fillStyle = (Math.floor(i/(VW/10)) % 2 === 0) ? '#0d2b11' : '#113816'; ctx.fillRect(i, 0, VW/10, VH); } }
+            else if (selectedPitch === 'elite') { ctx.fillStyle = '#113816'; ctx.fillRect(0,0,VW,VH); for(let r=VW; r > 0; r -= 70) { ctx.fillStyle = (Math.floor(r/70) % 2 === 0) ? '#113816' : '#0d2b11'; ctx.beginPath(); ctx.arc(VW/2, VH/2, r, 0, Math.PI*2); ctx.fill(); } }
+            else { ctx.fillStyle = '#5d4037'; ctx.fillRect(0,0,VW,VH); potreroPatches.forEach(p => { ctx.fillStyle = p.color; ctx.globalAlpha = p.opacity; ctx.beginPath(); ctx.ellipse(p.x, p.y, p.w, p.h, p.rot, 0, Math.PI*2); ctx.fill(); }); ctx.globalAlpha = 1.0; }
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)'; ctx.lineWidth = 2;
             if(selectedPitch === 'potrero') ctx.setLineDash([8, 12]);
-            else ctx.setLineDash([]);
-
-            const margin = 15;
-            ctx.strokeRect(margin, margin, VW - margin*2, VH - margin*2);
-            ctx.beginPath(); ctx.moveTo(VW/2, margin); ctx.lineTo(VW/2, VH-margin); ctx.stroke();
-            ctx.beginPath(); ctx.arc(VW/2, VH/2, 70, 0, Math.PI*2); ctx.stroke();
-            ctx.setLineDash([]);
-            
-            const goalHeight = 150;
-            const gy = (VH-goalHeight)/2;
-            ctx.strokeStyle = '#fff';
-            ctx.strokeRect(-2, gy, 40, goalHeight);
-            ctx.strokeRect(VW-38, gy, 40, goalHeight);
-
-            drawPlayer(p1, p1Team);
-            drawPlayer(p2, p2Team);
-
-            ctx.fillStyle = '#fff';
-            ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI*2); ctx.fill();
+            ctx.strokeRect(15, 15, VW - 30, VH - 30); ctx.beginPath(); ctx.moveTo(VW/2, 15); ctx.lineTo(VW/2, VH-15); ctx.stroke();
+            ctx.beginPath(); ctx.arc(VW/2, VH/2, 70, 0, Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
+            ctx.strokeStyle = '#fff'; ctx.strokeRect(-2, (VH-150)/2, 40, 150); ctx.strokeRect(VW-38, (VH-150)/2, 40, 150);
+            drawPlayer(p1, p1Team); drawPlayer(p2, p2Team);
+            ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI*2); ctx.fill();
         }
 
-        function drawPlayer(p, team) {
-            ctx.fillStyle = team.c1;
-            ctx.beginPath(); ctx.roundRect(p.x, p.y, p.w, p.h, 4); ctx.fill();
-            ctx.fillStyle = team.c2;
-            ctx.fillRect(p.x, p.y + p.h*0.35, p.w, p.h*0.3);
-        }
+        function drawPlayer(p, team) { ctx.fillStyle = team.c1; ctx.beginPath(); ctx.roundRect(p.x, p.y, p.w, p.h, 4); ctx.fill(); ctx.fillStyle = team.c2; ctx.fillRect(p.x, p.y + p.h*0.35, p.w, p.h*0.3); }
 
         function loop() { update(); draw(); requestAnimationFrame(loop); }
         loop();
