@@ -78,6 +78,7 @@
         .full-screen-menu.hidden { opacity: 0; pointer-events: none; }
         .active-panel { display: flex !important; }
         #mode-selector, #pitch-selector, #team-selector, #about-panel { display: none; flex-direction: column; align-items: center; width: 100%; animation: slideUp 0.4s ease-out; }
+        .menu-logo { width: 300px; max-width: 80%; margin-bottom: 20px; filter: drop-shadow(0 0 15px rgba(255,255,255,0.3)); }
         .menu-title { font-family: 'Black Ops One', cursive; font-size: 4rem; margin-bottom: 20px; text-transform: uppercase; text-align: center; line-height: 1; }
         .btn-modern { padding: 15px 40px; margin: 10px; font-family: 'Montserrat', sans-serif; font-size: 1rem; background: rgba(255, 255, 255, 0.05); color: #fff; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 50px; cursor: pointer; font-weight: 900; width: 100%; max-width: 380px; text-transform: uppercase; transition: 0.3s; }
         .btn-modern:hover { background: #fff; color: #000; }
@@ -128,7 +129,7 @@
 
         <div id="setup-menu" class="full-screen-menu">
             <div id="mode-selector" class="active-panel">
-                <h1 class="menu-title">SUPERLIGA<br>ARGENTINA</h1>
+                <img src="https://upload.wikimedia.org/wikipedia/commons/9/92/Logo_de_la_Liga_Profesional_de_F%C3%BAtbol_de_Argentina.svg" class="menu-logo" alt="Liga Profesional de Fútbol">
                 <button class="btn-modern" onclick="selectMode('pve')">Vs Computadora</button>
                 <button class="btn-modern" onclick="selectMode('pvp')">2 Jugadores</button>
                 <button class="btn-modern" onclick="showAbout()" style="font-size: 0.8rem; opacity: 0.8;">Acerca de / Controles</button>
