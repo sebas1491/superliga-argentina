@@ -23,6 +23,7 @@
             font-family: 'Inter', sans-serif;
             display: flex; align-items: center; justify-content: center;
             height: 100vh; overflow: hidden; color: white;
+            touch-action: none; /* Previene gestos del navegador en movil */
         }
 
         #game-wrapper {
@@ -138,8 +139,8 @@
             <div id="about-panel">
                 <div class="info-box">
                     <h3>Controles del Juego</h3>
-                    <p><strong>Jugador 1 (Local):</strong> Teclas <span style="color:var(--accent)">W</span> y <span style="color:var(--accent)">S</span></p>
-                    <p><strong>Jugador 2 (Visita):</strong> Flechas <span style="color:var(--accent)">ARRIBA</span> y <span style="color:var(--accent)">ABAJO</span></p>
+                    <p><strong>Jugador 1 (Local):</strong> Tocar/Arrastrar mitad izq. o <span style="color:var(--accent)">W</span>/<span style="color:var(--accent)">S</span></p>
+                    <p><strong>Jugador 2 (Visita):</strong> Tocar/Arrastrar mitad der. o <span style="color:var(--accent)">ARRIBA</span>/<span style="color:var(--accent)">ABAJO</span></p>
                     <div class="divider"></div>
                     <h3>Créditos</h3>
                     <p><strong>Autor:</strong> Juan Sebastian Olivera</p>
@@ -276,15 +277,51 @@
             anim.onfinish = () => p.remove();
         }
 
+        // --- ENTRADAS DE TECLADO ---
         const input = {};
         window.onkeydown = e => input[e.code] = true;
         window.onkeyup = e => input[e.code] = false;
 
+        // --- CONTROLES TÁCTILES PARA MÓVIL (APK) ---
+        function handleTouch(e) {
+            if(!playing || isPaused) return;
+            e.preventDefault(); // Evitar scroll de la pantalla
+            const rect = canvas.getBoundingClientRect();
+            const scaleY = VH / rect.height;
+            const scaleX = VW / rect.width;
+
+            for(let i=0; i<e.touches.length; i++) {
+                const touch = e.touches[i];
+                const x = (touch.clientX - rect.left) * scaleX;
+                const y = (touch.clientY - rect.top) * scaleY;
+
+                // Mitad izquierda controla a P1
+                if (x < VW / 2) {
+                    p1.y = y - p1.h / 2; 
+                } 
+                // Mitad derecha controla a P2 (solo si es modo 2 jugadores)
+                else if (gameMode === 'pvp') {
+                    p2.y = y - p2.h / 2;
+                }
+            }
+        }
+        canvas.addEventListener('touchstart', handleTouch, {passive: false});
+        canvas.addEventListener('touchmove', handleTouch, {passive: false});
+
+
         function update() {
             if(!playing || isPaused) return;
+            
+            // Movimiento por teclado (P1)
             if(input['KeyW']) p1.y -= p1.s; if(input['KeyS']) p1.y += p1.s;
-            if(gameMode === 'pvp') { if(input['ArrowUp']) p2.y -= p2.s; if(input['ArrowDown']) p2.y += p2.s; }
-            else { let center = p2.y + 40; if(ball.y > center + 15) p2.y += p2.s * 0.75; else if(ball.y < center - 15) p2.y -= p2.s * 0.75; }
+            
+            // Movimiento por teclado (P2)
+            if(gameMode === 'pvp') { 
+                if(input['ArrowUp']) p2.y -= p2.s; if(input['ArrowDown']) p2.y += p2.s; 
+            } else { 
+                let center = p2.y + 40; if(ball.y > center + 15) p2.y += p2.s * 0.75; else if(ball.y < center - 15) p2.y -= p2.s * 0.75; 
+            }
+            
             p1.y = Math.max(0, Math.min(VH-80, p1.y)); p2.y = Math.max(0, Math.min(VH-80, p2.y));
             ball.x += ball.dx; ball.y += ball.dy;
             if(ball.y < ball.r || ball.y > VH-ball.r) ball.dy *= -1;
