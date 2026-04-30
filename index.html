@@ -75,7 +75,7 @@
         .particle { position: absolute; width: 10px; height: 10px; pointer-events: none; border-radius: 2px; z-index: 199; }
 
         /* --- MENUS --- */
-        .full-screen-menu { position: absolute; inset: 0; background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.9)), url('https://media.a24.com/p/1f6d3babba870b534a9102207fa34ae2/adjuntos/296/imagenes/009/587/0009587387/1200x675/smart/image.png'); background-size: cover; background-position: center; z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; transition: all 0.5s ease; }
+        .full-screen-menu { position: absolute; inset: 0; background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.9)), url('https://media.a24.com/p/1f6d3babba870b534a9102207fa34ae2/adjuntos/296/imagenes/009/587/0009587387/1200x675/smart/image.png'); background-size: cover; background-position: center; z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; transition: all 0.5s ease; overflow-y: auto; }
         .full-screen-menu.hidden { opacity: 0; pointer-events: none; }
         .active-panel { display: flex !important; }
         #mode-selector, #pitch-selector, #team-selector, #about-panel { display: none; flex-direction: column; align-items: center; width: 100%; animation: slideUp 0.4s ease-out; }
@@ -84,6 +84,9 @@
         .btn-modern { padding: 15px 40px; margin: 10px; font-family: 'Montserrat', sans-serif; font-size: 1rem; background: rgba(255, 255, 255, 0.05); color: #fff; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 50px; cursor: pointer; font-weight: 900; width: 100%; max-width: 380px; text-transform: uppercase; transition: 0.3s; }
         .btn-modern:hover { background: #fff; color: #000; }
         
+        #btn-sel-p1.active-sel { background: var(--afa-blue); color: #000; border-color: var(--afa-blue); }
+        #btn-sel-p2.active-sel { background: red; color: #fff; border-color: red; }
+
         /* --- ACERCA DE PANEL --- */
         .info-box { background: rgba(0, 0, 0, 0.6); padding: 25px; border-radius: 15px; border: 1px solid var(--afa-blue); max-width: 500px; text-align: center; backdrop-filter: blur(10px); }
         .info-box h3 { color: var(--afa-blue); margin-top: 0; text-transform: uppercase; }
@@ -102,6 +105,34 @@
         .team-card img { width: 35px; height: 35px; margin-bottom: 5px; object-fit: contain; }
         #victory-screen { position: absolute; inset: 0; background: rgba(0,0,0,0.95); z-index: 2000; display: none; flex-direction: column; justify-content: center; align-items: center; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- AJUSTES PARA MOVILES (Especialmente horizontal) --- */
+        @media (max-height: 500px) {
+            .full-screen-menu { justify-content: center; padding: 5px; }
+            .menu-logo { width: 120px; margin-bottom: 10px; }
+            .menu-title { font-size: 1.8rem; margin-bottom: 5px; }
+            .btn-modern { padding: 8px 20px; margin: 5px; font-size: 0.8rem; }
+            
+            #team-selector .menu-title { font-size: 1.5rem; margin-bottom: 5px; }
+            .team-grid { max-height: 130px; gap: 5px; margin: 5px 0; grid-template-columns: repeat(8, 1fr); padding: 5px; }
+            .team-card { padding: 4px 2px; }
+            .team-card img { width: 22px; height: 22px; margin-bottom: 2px; }
+            .team-card div { font-size: 0.6rem; }
+            
+            .pitch-card { width: 130px; height: 95px; }
+            .pitch-thumb { height: 60px; }
+            .pitch-preview-container { margin-top: 5px; }
+            
+            .info-box { padding: 15px; font-size: 0.8rem; }
+            .info-box p { margin: 4px 0; }
+            .info-box h3 { margin-bottom: 5px; font-size: 1rem; }
+            .info-box .divider { margin: 8px 0; }
+        }
+
+        /* Orientación vertical para móviles */
+        @media (max-width: 600px) and (orientation: portrait) {
+            .team-grid { grid-template-columns: repeat(4, 1fr); max-height: 350px; }
+        }
     </style>
 </head>
 <body>
@@ -162,11 +193,19 @@
                     <div class="pitch-card" onclick="selectPitch('potrero')"><div class="pitch-thumb thumb-potrero"></div><div style="text-align:center; padding:5px; font-weight:900; font-size:0.7rem">POTRERO</div></div>
                 </div>
             </div>
+            
             <div id="team-selector">
                 <h1 class="menu-title" style="font-size: 1.8rem;">Clubes</h1>
+                
+                <!-- Botones para elegir quién selecciona -->
+                <div style="display: flex; gap: 10px; width: 100%; max-width: 400px; justify-content: center; margin-bottom: 5px;">
+                    <button id="btn-sel-p1" class="btn-modern active-sel" onclick="setSelectingPlayer(1)" style="flex: 1; padding: 8px 10px; margin: 0; font-size: 0.8rem;">Local (Jugador 1)</button>
+                    <button id="btn-sel-p2" class="btn-modern" onclick="setSelectingPlayer(2)" style="flex: 1; padding: 8px 10px; margin: 0; font-size: 0.8rem;">Visita (Jugador 2)</button>
+                </div>
+
                 <div class="team-grid" id="team-grid"></div>
-                <p style="font-size: 0.7rem; opacity: 0.6;">Click Izq: Local | Click Der: Visitante</p>
-                <button class="btn-modern" onclick="initMatch()" style="background: var(--afa-blue); color: #000; border:none;">Jugar</button>
+                
+                <button class="btn-modern" onclick="initMatch()" style="background: var(--afa-blue); color: #000; border:none; margin-top: 10px;">Jugar</button>
             </div>
         </div>
 
@@ -207,6 +246,8 @@
         let gameMode = 'pve', playing = false, isPaused = false;
         let selectedPitch = 'classic', clock = 120, p1Score = 0, p2Score = 0;
         let potreroPatches = [];
+        
+        let selectingPlayer = 1; // 1 = Local, 2 = Visita
 
         const ball = { x: VW/2, y: VH/2, r: 8, dx: 0, dy: 0, s: 7 };
         const p1 = { x: 40, y: VH/2 - 40, w: 18, h: 80, s: 8 };
@@ -219,6 +260,12 @@
         function hideAbout() { switchPanel('about-panel', 'mode-selector'); }
         function switchPanel(oldId, newId) { document.getElementById(oldId).classList.remove('active-panel'); document.getElementById(newId).classList.add('active-panel'); }
         
+        function setSelectingPlayer(p) {
+            selectingPlayer = p;
+            document.getElementById('btn-sel-p1').classList.toggle('active-sel', p === 1);
+            document.getElementById('btn-sel-p2').classList.toggle('active-sel', p === 2);
+        }
+
         function initPotreroDesign() {
             potreroPatches = [];
             for(let i=0; i<60; i++) potreroPatches.push({ x: Math.random()*VW, y: Math.random()*VH, w: 30+Math.random()*60, h: 15+Math.random()*30, rot: Math.random()*Math.PI, color: Math.random()>0.6 ? '#4e342e' : '#2e7d32', opacity: 0.2 });
@@ -229,8 +276,21 @@
             teams.forEach(t => {
                 const card = document.createElement('div'); card.className = 'team-card'; card.id = `card-${t.id}`;
                 card.innerHTML = `<img src="${t.crest}"><div>${t.tag}</div>`;
-                card.onclick = () => { p1Team = t; updateCards(); };
-                card.oncontextmenu = (e) => { e.preventDefault(); p2Team = t; updateCards(); };
+                
+                // Asignar el equipo al jugador que esté seleccionado actualmente mediante los botones
+                card.onclick = () => { 
+                    if(selectingPlayer === 1) p1Team = t;
+                    else p2Team = t;
+                    updateCards(); 
+                };
+                
+                // Mantenemos el clic derecho por si alguien juega en PC
+                card.oncontextmenu = (e) => { 
+                    e.preventDefault(); 
+                    p2Team = t; 
+                    setSelectingPlayer(2);
+                    updateCards(); 
+                };
                 grid.appendChild(card);
             });
             updateCards();
